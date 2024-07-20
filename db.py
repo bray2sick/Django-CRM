@@ -1,3 +1,5 @@
+# Can be deleted
+
 import mysql.connector
 
 dataBase = mysql.connector.connect(

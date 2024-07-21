@@ -1,8 +1,9 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
-from .forms import SignUpForm
+from .forms import SignUpForm, AddRecordForm
 from .models import Record
+from django.utils.safestring import mark_safe
 
 def home(request):
     records = Record.objects.all()
@@ -61,11 +62,23 @@ def delete_record(request, pk):
         first_name = delete_it.first_name
         last_name = delete_it.last_name
         delete_it.delete()
-        messages.success(request, f"Record for {first_name} {last_name} successfully deleted!")
+        messages.success(request, mark_safe(f"Record for <b>{first_name} {last_name}</b> successfully deleted!"))
         return redirect('home')
     else:
         messages.success(request, ("You must be logged in to do that..."))
         return redirect('home')
 
 def add_record(request):
-    return render(request, "add_record.html")
+    form = AddRecordForm(request.POST or None)
+    if request.user.is_authenticated:
+        if request.method == "POST":
+            if form.is_valid():
+                add_record = form.save()
+                first_name = add_record.first_name
+                last_name = add_record.last_name
+                messages.success(request, mark_safe(f"User <b>{first_name} {last_name}</b> successfully added!"))
+                return redirect('home')
+        return render(request, 'add_record.html', {'form': form})
+    else:
+        messages.success(request, "You must be logged in to do that...")
+        return redirect('home')
